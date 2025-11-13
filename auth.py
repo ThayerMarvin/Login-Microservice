@@ -7,6 +7,7 @@ def hash_password(password: str):
     return hashlib.sha256(password.encode()).hexdigest()
 
 def handle_login(username: str, password: str):
+    """Function to to validate the user's login credentials"""
     users_db = load_users()
     hashed_pwd = hash_password(password)
     user = users_db.get(username)
@@ -25,13 +26,14 @@ def handle_login(username: str, password: str):
     }
 
 def handle_registration(username: str, password: str):
+    """Function to handle the user's registration request"""
     users_db = load_users()
 
     if username in users_db:
         return {"status": "failure", "error_message": "Username already exists."}
 
-    if len(password) < 8:
-        return {"status": "failure", "error_message": "Password must be at least 8 characters long."}
+    if len(password) < 8 or len(password) > 12:
+        return {"status": "failure", "error_message": "Password must be between 8 and 12 characters long."}
 
     user_id = f"u{len(users_db)+1:03d}"
     hashed_pwd = hash_password(password)
