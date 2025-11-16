@@ -1,6 +1,6 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
-from auth import handle_login, handle_registration
+from auth import handle_login, handle_registration, handle_logout
 
 # initialize FastAPI application
 app = FastAPI(title= "Login")
@@ -14,6 +14,11 @@ class RegisterRequest(BaseModel):
     # data model for registration requests
     username: str
     password: str
+
+class LogoutRequest(BaseModel):
+    # data model for logout requests
+    user_id: str
+    session_token: str
 
 class AuthorizationResponse(BaseModel):
     # data model for responses
@@ -33,9 +38,17 @@ def login(request: LoginRequest):
     return result
 
 @app.post("/register", response_model=AuthorizationResponse)
-def login(request: RegisterRequest):
+def register(request: RegisterRequest):
     """Registration endpoint accepts username and password"""
     result = handle_registration(request.username, request.password)
+    if result["status"] == "failure":
+        raise HTTPException(status_code=400, detail=result["error_message"])
+    return result
+
+@app.post("/logout", response_model=AuthorizationResponse)
+def logout(request: LogoutRequest):
+    """Logs the user out by invalidating the session token"""
+    result = handle_logout(request.user_id, request.session_token)
     if result["status"] == "failure":
         raise HTTPException(status_code=400, detail=result["error_message"])
     return result
